@@ -150,7 +150,7 @@ func Decode(dst, src []byte) ([]byte, error) {
 		d.dpos += length
 
 		if int(d.spos) == len(d.src) {
-			return d.dst, nil
+			return d.dst[:d.dpos], nil
 		}
 
 		if int(d.spos+2) >= len(d.src) {
