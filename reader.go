@@ -34,6 +34,7 @@ import (
 var (
 	// ErrCorrupt indicates the input was corrupt
 	ErrCorrupt = errors.New("corrupt input")
+	ErrOutOfMemory = errors.New("out of memory") // Indicates dst wasn't large enough
 )
 
 const (
@@ -138,7 +139,7 @@ func Decode(dst, src []byte) ([]byte, error) {
 		}
 
 		if int(d.spos+length) > len(d.src) || int(d.dpos+length) > len(d.dst) {
-			return nil, ErrCorrupt
+			return nil, ErrOutOfMemory
 		}
 
 		for ii := uint32(0); ii < length; ii++ {
@@ -178,7 +179,7 @@ func Decode(dst, src []byte) ([]byte, error) {
 
 		if literal < 4 {
 			if int(d.dpos+4) > len(d.dst) {
-				return nil, ErrCorrupt
+				return nil, ErrOutOfMemory
 			}
 
 			d.cp(4, decr[literal])
@@ -186,8 +187,8 @@ func Decode(dst, src []byte) ([]byte, error) {
 			length += 4
 		}
 
-		if d.dpos+length > uncompressedLen {
-			return nil, ErrCorrupt
+		if d.dpos+length > uint32(len(d.dst)) {
+			return nil, ErrOutOfMemory
 		}
 
 		d.cp(length, 0)
