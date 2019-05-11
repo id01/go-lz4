@@ -100,36 +100,32 @@ func (d *decoder) finish(err error) error {
 	return err
 }
 
-// Decode returns the decoded form of src.  The returned slice may be a
-// subslice of dst if it was large enough to hold the entire decoded block.
+// Decode returns the decoded form of src.  The returned slice is a subslice of dst.
+// Must have an input of dst with large enough length to hold the decompressed buffer.
 func Decode(dst, src []byte) ([]byte, error) {
 
 	if len(src) < 4 {
 		return nil, ErrCorrupt
 	}
 
-	uncompressedLen := binary.LittleEndian.Uint32(src)
+	compressedLen := binary.LittleEndian.Uint32(src)
 
-	if uncompressedLen == 0 {
-		return nil, nil
+	if compressedLen == 0 {
+		return nil, ErrCorrupt
 	}
 
-	if uncompressedLen > MaxInputSize {
+	if compressedLen > MaxInputSize {
 		return nil, ErrTooLarge
 	}
 
-	if dst == nil || len(dst) < int(uncompressedLen) {
-		dst = make([]byte, uncompressedLen)
-	}
-
-	d := decoder{src: src, dst: dst[:uncompressedLen], spos: 4}
+	d := decoder{src: src, dst: dst, spos: 4}
 
 	decr := []uint32{0, 3, 2, 3}
 
 	for {
 		code, err := d.readByte()
 		if err != nil {
-			return d.dst, d.finish(err)
+			return d.dst[:d.dpos], d.finish(err)
 		}
 
 		length := uint32(code >> mlBits)

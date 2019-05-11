@@ -114,7 +114,6 @@ func Encode(dst, src []byte) ([]byte, error) {
 
 	e := encoder{src: src, dst: dst, hashTable: make([]uint32, hashTableSize)}
 
-	binary.LittleEndian.PutUint32(dst, uint32(len(src)))
 	e.dpos = 4
 
 	var (
@@ -125,6 +124,7 @@ func Encode(dst, src []byte) ([]byte, error) {
 	for {
 		if int(e.pos)+12 >= len(e.src) {
 			e.writeLiterals(uint32(len(e.src))-e.anchor, 0, e.anchor)
+			binary.LittleEndian.PutUint32(dst, uint32(e.dpos))
 			return e.dst[:e.dpos], nil
 		}
 
