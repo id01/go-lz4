@@ -124,7 +124,7 @@ func Encode(dst, src []byte) ([]byte, error) {
 	for {
 		if int(e.pos)+12 >= len(e.src) {
 			e.writeLiterals(uint32(len(e.src))-e.anchor, 0, e.anchor)
-			binary.LittleEndian.PutUint32(dst, uint32(e.dpos))
+			binary.LittleEndian.PutUint32(dst, uint32(e.dpos-4)) // Subtract 4 because the compressed size isn't counted as part of the block
 			return e.dst[:e.dpos], nil
 		}
 
